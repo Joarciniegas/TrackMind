@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // PWA config can be added later
+  output: "standalone",
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
