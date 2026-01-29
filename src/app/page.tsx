@@ -1,0 +1,212 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+// Datos de ejemplo
+const mockVehicles = [
+  {
+    id: 1,
+    vin: "123456",
+    year: 2020,
+    make: "Toyota",
+    model: "Camry",
+    status: "RECON",
+    days: 3,
+    cost: 15000,
+  },
+  {
+    id: 2,
+    vin: "789012",
+    year: 2019,
+    make: "Honda",
+    model: "Accord",
+    status: "TRANSITO",
+    days: 1,
+    cost: 12000,
+  },
+  {
+    id: 3,
+    vin: "345678",
+    year: 2021,
+    make: "Ford",
+    model: "F-150",
+    status: "LISTO",
+    days: 7,
+    cost: 28000,
+  },
+  {
+    id: 4,
+    vin: "901234",
+    year: 2018,
+    make: "Chevrolet",
+    model: "Silverado",
+    status: "EXHIBICION",
+    days: 2,
+    cost: 22000,
+  },
+];
+
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  SUBASTA: { label: "Subasta", color: "text-white", bg: "bg-indigo-500" },
+  TRANSITO: { label: "En Tránsito", color: "text-white", bg: "bg-amber-500" },
+  RECIBIDO: { label: "Recibido", color: "text-white", bg: "bg-blue-500" },
+  RECON: { label: "En Recon", color: "text-white", bg: "bg-purple-500" },
+  PIEZAS: { label: "Esperando Piezas", color: "text-white", bg: "bg-red-500" },
+  LISTO: { label: "Listo", color: "text-white", bg: "bg-green-500" },
+  EXHIBICION: { label: "En Exhibición", color: "text-white", bg: "bg-cyan-500" },
+  VENDIDO: { label: "Vendido", color: "text-white", bg: "bg-emerald-600" },
+};
+
+export default function Home() {
+  const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
+
+  const filteredVehicles = mockVehicles.filter((v) => {
+    const matchesFilter = filter === "ALL" || v.status === filter;
+    const matchesSearch =
+      search === "" ||
+      v.vin.includes(search) ||
+      v.make.toLowerCase().includes(search.toLowerCase()) ||
+      v.model.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  // Contadores por status
+  const counts = mockVehicles.reduce((acc, v) => {
+    acc[v.status] = (acc[v.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-blue-600 text-white px-4 py-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold">TrackMind</h1>
+          <Link
+            href="/vehicle/new"
+            className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold text-sm"
+          >
+            + Nuevo
+          </Link>
+        </div>
+      </header>
+
+      {/* Search */}
+      <div className="px-4 py-3 bg-white border-b">
+        <input
+          type="text"
+          placeholder="Buscar VIN, marca, modelo..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-3 bg-gray-100 rounded-xl text-base"
+        />
+      </div>
+
+      {/* Status Filters */}
+      <div className="px-4 py-3 bg-white border-b overflow-x-auto">
+        <div className="flex gap-2 min-w-max">
+          <button
+            onClick={() => setFilter("ALL")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              filter === "ALL"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            Todos ({mockVehicles.length})
+          </button>
+          {Object.entries(statusConfig).map(([key, config]) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                filter === key
+                  ? `${config.bg} ${config.color}`
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              {config.label} ({counts[key] || 0})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Vehicle List */}
+      <div className="px-4 py-4 space-y-3">
+        {filteredVehicles.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No hay vehículos
+          </div>
+        ) : (
+          filteredVehicles.map((vehicle) => {
+            const status = statusConfig[vehicle.status];
+            return (
+              <Link
+                key={vehicle.id}
+                href={`/vehicle/${vehicle.id}`}
+                className="block bg-white rounded-xl p-4 shadow-sm active:bg-gray-50"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-bold text-lg">
+                      {vehicle.year} {vehicle.make} {vehicle.model}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                      VIN: {vehicle.vin}
+                    </div>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}
+                  >
+                    {status.label}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                  <span className="text-gray-500 text-sm">
+                    {vehicle.days} días
+                  </span>
+                  <span className="font-semibold text-green-600">
+                    ${vehicle.cost.toLocaleString()}
+                  </span>
+                </div>
+              </Link>
+            );
+          })
+        )}
+      </div>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 safe-bottom">
+        <div className="flex justify-around">
+          <button className="flex flex-col items-center py-2 text-blue-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span className="text-xs mt-1">Inicio</span>
+          </button>
+          <Link href="/vehicle/new" className="flex flex-col items-center py-2 text-gray-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="text-xs mt-1">Agregar</span>
+          </Link>
+          <button className="flex flex-col items-center py-2 text-gray-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="text-xs mt-1">Stats</span>
+          </button>
+          <button className="flex flex-col items-center py-2 text-gray-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-xs mt-1">Config</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  );
+}
