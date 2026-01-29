@@ -7,6 +7,51 @@ import Link from "next/link";
 const auctions = ["Manheim", "Copart", "IAAI", "Adesa", "Otro"];
 const paymentMethods = ["CASH", "FLOORING"];
 
+// Años desde 2010 hasta 2026
+const years = Array.from({ length: 17 }, (_, i) => (2026 - i).toString());
+
+// Marcas y modelos populares
+const vehicleData: Record<string, string[]> = {
+  Toyota: ["Camry", "Corolla", "RAV4", "Highlander", "Tacoma", "Tundra", "4Runner", "Prius", "Sienna", "Avalon"],
+  Honda: ["Civic", "Accord", "CR-V", "Pilot", "HR-V", "Odyssey", "Ridgeline", "Passport", "Fit"],
+  Ford: ["F-150", "Escape", "Explorer", "Mustang", "Edge", "Bronco", "Ranger", "Expedition", "Maverick"],
+  Chevrolet: ["Silverado", "Equinox", "Tahoe", "Suburban", "Malibu", "Traverse", "Colorado", "Camaro", "Blazer"],
+  Nissan: ["Altima", "Sentra", "Rogue", "Pathfinder", "Murano", "Frontier", "Maxima", "Kicks", "Armada"],
+  Hyundai: ["Elantra", "Sonata", "Tucson", "Santa Fe", "Kona", "Palisade", "Accent", "Venue"],
+  Kia: ["Optima", "Sorento", "Sportage", "Telluride", "Forte", "Soul", "Seltos", "Carnival"],
+  BMW: ["3 Series", "5 Series", "X3", "X5", "X1", "7 Series", "X7", "4 Series"],
+  "Mercedes-Benz": ["C-Class", "E-Class", "GLC", "GLE", "A-Class", "S-Class", "GLA", "GLB"],
+  Audi: ["A4", "A6", "Q5", "Q7", "A3", "Q3", "A5", "e-tron"],
+  Lexus: ["ES", "RX", "NX", "IS", "GX", "LX", "UX", "LS"],
+  Mazda: ["CX-5", "Mazda3", "CX-30", "CX-9", "Mazda6", "MX-5 Miata", "CX-50"],
+  Subaru: ["Outback", "Forester", "Crosstrek", "Impreza", "Ascent", "Legacy", "WRX"],
+  Volkswagen: ["Jetta", "Tiguan", "Atlas", "Passat", "Golf", "ID.4", "Taos"],
+  Jeep: ["Wrangler", "Grand Cherokee", "Cherokee", "Compass", "Gladiator", "Renegade"],
+  Ram: ["1500", "2500", "3500", "ProMaster"],
+  GMC: ["Sierra", "Terrain", "Acadia", "Yukon", "Canyon"],
+  Dodge: ["Charger", "Challenger", "Durango", "Hornet"],
+  Otro: ["Otro"],
+};
+
+const makes = Object.keys(vehicleData);
+
+const colors = [
+  "Blanco",
+  "Negro",
+  "Gris",
+  "Plata",
+  "Rojo",
+  "Azul",
+  "Azul Marino",
+  "Verde",
+  "Beige",
+  "Marrón",
+  "Dorado",
+  "Naranja",
+  "Amarillo",
+  "Otro",
+];
+
 export default function NewVehicle() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -26,7 +71,14 @@ export default function NewVehicle() {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Si cambia la marca, resetear el modelo
+    if (name === "make") {
+      setForm({ ...form, make: value, model: "" });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +110,8 @@ export default function NewVehicle() {
     }
   };
 
+  const availableModels = form.make ? vehicleData[form.make] || [] : [];
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -84,50 +138,61 @@ export default function NewVehicle() {
             value={form.vin}
             onChange={handleChange}
             maxLength={6}
-            pattern="[0-9]{6}"
+            pattern="[0-9A-Za-z]{6}"
             required
             placeholder="123456"
             className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 text-lg"
           />
         </div>
 
-        {/* Year, Make, Model */}
+        {/* Year, Make */}
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Año</label>
-            <input
-              type="number"
+            <select
               name="year"
               value={form.year}
               onChange={handleChange}
-              placeholder="2020"
               className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
-            />
+            >
+              <option value="">Año</option>
+              {years.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </div>
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-            <input
-              type="text"
+            <select
               name="make"
               value={form.make}
               onChange={handleChange}
-              placeholder="Toyota"
               className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
-            />
+            >
+              <option value="">Seleccionar marca</option>
+              {makes.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
           </div>
         </div>
 
+        {/* Model, Trim */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
-            <input
-              type="text"
+            <select
               name="model"
               value={form.model}
               onChange={handleChange}
-              placeholder="Camry"
-              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
-            />
+              disabled={!form.make}
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 disabled:bg-gray-100"
+            >
+              <option value="">Seleccionar modelo</option>
+              {availableModels.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Trim</label>
@@ -136,23 +201,27 @@ export default function NewVehicle() {
               name="trim"
               value={form.trim}
               onChange={handleChange}
-              placeholder="SE"
+              placeholder="SE, XLE, Sport..."
               className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
             />
           </div>
         </div>
 
+        {/* Color, Miles */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-            <input
-              type="text"
+            <select
               name="color"
               value={form.color}
               onChange={handleChange}
-              placeholder="Blanco"
               className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
-            />
+            >
+              <option value="">Seleccionar color</option>
+              {colors.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Millas</label>
