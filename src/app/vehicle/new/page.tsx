@@ -33,14 +33,29 @@ export default function NewVehicle() {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: API call
-    console.log("Saving vehicle:", form);
+    try {
+      const response = await fetch("/api/vehicles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          year: form.year ? parseInt(form.year) : null,
+          miles: form.miles ? parseInt(form.miles) : null,
+          purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : 0,
+          transport_cost: form.transport_cost ? parseFloat(form.transport_cost) : 0,
+        }),
+      });
 
-    // Simular guardado
-    setTimeout(() => {
+      if (response.ok) {
+        router.push("/");
+      } else {
+        alert("Error al guardar");
+      }
+    } catch {
+      alert("Error de conexión");
+    } finally {
       setLoading(false);
-      router.push("/");
-    }, 1000);
+    }
   };
 
   return (

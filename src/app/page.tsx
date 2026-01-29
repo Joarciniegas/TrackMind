@@ -1,51 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-// Datos de ejemplo
-const mockVehicles = [
-  {
-    id: 1,
-    vin: "123456",
-    year: 2020,
-    make: "Toyota",
-    model: "Camry",
-    status: "RECON",
-    days: 3,
-    cost: 15000,
-  },
-  {
-    id: 2,
-    vin: "789012",
-    year: 2019,
-    make: "Honda",
-    model: "Accord",
-    status: "TRANSITO",
-    days: 1,
-    cost: 12000,
-  },
-  {
-    id: 3,
-    vin: "345678",
-    year: 2021,
-    make: "Ford",
-    model: "F-150",
-    status: "LISTO",
-    days: 7,
-    cost: 28000,
-  },
-  {
-    id: 4,
-    vin: "901234",
-    year: 2018,
-    make: "Chevrolet",
-    model: "Silverado",
-    status: "EXHIBICION",
-    days: 2,
-    cost: 22000,
-  },
-];
+interface Vehicle {
+  id: number;
+  vin: string;
+  year: number;
+  make: string;
+  model: string;
+  status: string;
+  purchase_price: number;
+  transport_cost: number;
+  recon_cost: number;
+  created_at: string;
+}
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   SUBASTA: { label: "Subasta", color: "text-white", bg: "bg-indigo-500" },
@@ -58,22 +27,40 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
   VENDIDO: { label: "Vendido", color: "text-white", bg: "bg-emerald-600" },
 };
 
+function getDaysAgo(dateString: string): number {
+  const created = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - created.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
 export default function Home() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 
-  const filteredVehicles = mockVehicles.filter((v) => {
+  useEffect(() => {
+    fetch("/api/vehicles")
+      .then((res) => res.json())
+      .then((data) => {
+        setVehicles(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filteredVehicles = vehicles.filter((v) => {
     const matchesFilter = filter === "ALL" || v.status === filter;
     const matchesSearch =
       search === "" ||
-      v.vin.includes(search) ||
-      v.make.toLowerCase().includes(search.toLowerCase()) ||
-      v.model.toLowerCase().includes(search.toLowerCase());
+      v.vin?.includes(search) ||
+      v.make?.toLowerCase().includes(search.toLowerCase()) ||
+      v.model?.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  // Contadores por status
-  const counts = mockVehicles.reduce((acc, v) => {
+  const counts = vehicles.reduce((acc, v) => {
     acc[v.status] = (acc[v.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -115,7 +102,7 @@ export default function Home() {
                 : "bg-gray-200 text-gray-700"
             }`}
           >
-            Todos ({mockVehicles.length})
+            Todos ({vehicles.length})
           </button>
           {Object.entries(statusConfig).map(([key, config]) => (
             <button
@@ -134,14 +121,18 @@ export default function Home() {
       </div>
 
       {/* Vehicle List */}
-      <div className="px-4 py-4 space-y-3">
-        {filteredVehicles.length === 0 ? (
+      <div className="px-4 py-4 space-y-3 pb-24">
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Cargando...</div>
+        ) : filteredVehicles.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             No hay vehículos
           </div>
         ) : (
           filteredVehicles.map((vehicle) => {
-            const status = statusConfig[vehicle.status];
+            const status = statusConfig[vehicle.status] || statusConfig.SUBASTA;
+            const totalCost = (vehicle.purchase_price || 0) + (vehicle.transport_cost || 0) + (vehicle.recon_cost || 0);
+            const days = getDaysAgo(vehicle.created_at);
             return (
               <Link
                 key={vehicle.id}
@@ -165,10 +156,10 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
                   <span className="text-gray-500 text-sm">
-                    {vehicle.days} días
+                    {days} días
                   </span>
                   <span className="font-semibold text-green-600">
-                    ${vehicle.cost.toLocaleString()}
+                    ${totalCost.toLocaleString()}
                   </span>
                 </div>
               </Link>

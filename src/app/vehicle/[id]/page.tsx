@@ -2,9 +2,38 @@
 
 export const runtime = "edge";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+
+interface TimelineEntry {
+  id: number;
+  status: string;
+  user_name: string;
+  note: string;
+  created_at: string;
+}
+
+interface Vehicle {
+  id: number;
+  vin: string;
+  stock_no: string;
+  year: number;
+  make: string;
+  model: string;
+  trim: string;
+  color: string;
+  miles: number;
+  status: string;
+  auction: string;
+  payment_method: string;
+  purchase_price: number;
+  transport_cost: number;
+  recon_cost: number;
+  photo_url: string | null;
+  notes: string;
+  timeline: TimelineEntry[];
+}
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   SUBASTA: { label: "Subasta", color: "text-white", bg: "bg-indigo-500" },
@@ -19,52 +48,78 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 
 const statusFlow = ["SUBASTA", "TRANSITO", "RECIBIDO", "RECON", "PIEZAS", "LISTO", "EXHIBICION", "VENDIDO"];
 
-// Mock data
-const mockVehicle = {
-  id: 1,
-  vin: "123456",
-  stock_no: "STK001",
-  year: 2020,
-  make: "Toyota",
-  model: "Camry",
-  trim: "SE",
-  color: "Blanco",
-  miles: 45000,
-  status: "RECON",
-  auction: "Manheim",
-  payment_method: "CASH",
-  purchase_price: 15000,
-  transport_cost: 400,
-  recon_cost: 1200,
-  photo_url: null,
-  notes: "Necesita frenos y aceite",
-  date_arrived: "2026-01-25",
-  timeline: [
-    { date: "2026-01-20", status: "SUBASTA", user: "Jorge", note: "Comprado en Manheim" },
-    { date: "2026-01-22", status: "TRANSITO", user: "Jorge", note: "En camino" },
-    { date: "2026-01-25", status: "RECIBIDO", user: "Maria", note: "Llegó al taller" },
-    { date: "2026-01-26", status: "RECON", user: "Pedro", note: "Iniciando inspección" },
-  ],
-};
-
 export default function VehicleDetail() {
   const params = useParams();
-  const [vehicle, setVehicle] = useState(mockVehicle);
+  const router = useRouter();
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newNote, setNewNote] = useState("");
 
-  const totalInvested = vehicle.purchase_price + vehicle.transport_cost + vehicle.recon_cost;
+  useEffect(() => {
+    fetch(`/api/vehicles/${params.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          router.push("/");
+        } else {
+          setVehicle(data);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        router.push("/");
+      });
+  }, [params.id, router]);
 
-  const handleStatusChange = (newStatus: string) => {
-    setVehicle({ ...vehicle, status: newStatus });
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!vehicle) return null;
+
+  const totalInvested = (vehicle.purchase_price || 0) + (vehicle.transport_cost || 0) + (vehicle.recon_cost || 0);
+  const currentStatus = statusConfig[vehicle.status] || statusConfig.SUBASTA;
+
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const response = await fetch(`/api/vehicles/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        setVehicle({ ...vehicle, status: newStatus });
+        // Reload to get updated timeline
+        const updated = await fetch(`/api/vehicles/${params.id}`).then(r => r.json());
+        setVehicle(updated);
+      }
+    } catch {
+      alert("Error al actualizar");
+    }
     setShowStatusModal(false);
-    // TODO: API call
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNote.trim()) return;
-    // TODO: API call
-    setNewNote("");
+
+    try {
+      await fetch(`/api/vehicles/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: vehicle.notes ? `${vehicle.notes}\n${newNote}` : newNote }),
+      });
+      setVehicle({ ...vehicle, notes: vehicle.notes ? `${vehicle.notes}\n${newNote}` : newNote });
+      setNewNote("");
+    } catch {
+      alert("Error al agregar nota");
+    }
   };
 
   return (
@@ -83,11 +138,6 @@ export default function VehicleDetail() {
               <p className="text-blue-200 text-sm">VIN: {vehicle.vin}</p>
             </div>
           </div>
-          <Link href={`/vehicle/${params.id}/edit`} className="p-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </Link>
         </div>
       </header>
 
@@ -101,7 +151,7 @@ export default function VehicleDetail() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <button className="mt-2 text-blue-600 font-medium">Subir Foto</button>
+            <p className="mt-2 text-gray-500 text-sm">Sin foto</p>
           </div>
         )}
       </div>
@@ -110,9 +160,9 @@ export default function VehicleDetail() {
       <div className="px-4 -mt-6 relative z-10">
         <button
           onClick={() => setShowStatusModal(true)}
-          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg ${statusConfig[vehicle.status].bg} ${statusConfig[vehicle.status].color}`}
+          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg ${currentStatus.bg} ${currentStatus.color}`}
         >
-          {statusConfig[vehicle.status].label}
+          {currentStatus.label}
           <span className="ml-2">▼</span>
         </button>
       </div>
@@ -125,19 +175,19 @@ export default function VehicleDetail() {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-gray-500">Stock #</span>
-              <p className="font-medium">{vehicle.stock_no}</p>
+              <p className="font-medium">{vehicle.stock_no || "-"}</p>
             </div>
             <div>
               <span className="text-gray-500">Color</span>
-              <p className="font-medium">{vehicle.color}</p>
+              <p className="font-medium">{vehicle.color || "-"}</p>
             </div>
             <div>
               <span className="text-gray-500">Millas</span>
-              <p className="font-medium">{vehicle.miles.toLocaleString()}</p>
+              <p className="font-medium">{vehicle.miles?.toLocaleString() || "-"}</p>
             </div>
             <div>
               <span className="text-gray-500">Trim</span>
-              <p className="font-medium">{vehicle.trim}</p>
+              <p className="font-medium">{vehicle.trim || "-"}</p>
             </div>
           </div>
         </div>
@@ -147,16 +197,16 @@ export default function VehicleDetail() {
           <h2 className="font-semibold text-gray-900 mb-3">Costos</h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Compra ({vehicle.auction})</span>
-              <span className="font-medium">${vehicle.purchase_price.toLocaleString()}</span>
+              <span className="text-gray-500">Compra ({vehicle.auction || "N/A"})</span>
+              <span className="font-medium">${(vehicle.purchase_price || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Transporte</span>
-              <span className="font-medium">${vehicle.transport_cost.toLocaleString()}</span>
+              <span className="font-medium">${(vehicle.transport_cost || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Recon</span>
-              <span className="font-medium">${vehicle.recon_cost.toLocaleString()}</span>
+              <span className="font-medium">${(vehicle.recon_cost || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between pt-2 border-t border-gray-100">
               <span className="font-semibold">Total Invertido</span>
@@ -168,7 +218,7 @@ export default function VehicleDetail() {
             <span className={`px-2 py-1 rounded text-xs font-semibold ${
               vehicle.payment_method === "CASH" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
             }`}>
-              {vehicle.payment_method}
+              {vehicle.payment_method || "N/A"}
             </span>
           </div>
         </div>
@@ -176,7 +226,7 @@ export default function VehicleDetail() {
         {/* Notes */}
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-3">Notas</h2>
-          <p className="text-gray-600 text-sm">{vehicle.notes || "Sin notas"}</p>
+          <p className="text-gray-600 text-sm whitespace-pre-wrap">{vehicle.notes || "Sin notas"}</p>
           <div className="mt-3 flex gap-2">
             <input
               type="text"
@@ -198,22 +248,26 @@ export default function VehicleDetail() {
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-3">Historial</h2>
           <div className="space-y-3">
-            {vehicle.timeline.map((entry, i) => (
-              <div key={i} className="flex gap-3 text-sm">
-                <div className="flex flex-col items-center">
-                  <div className={`w-3 h-3 rounded-full ${statusConfig[entry.status]?.bg || "bg-gray-300"}`} />
-                  {i < vehicle.timeline.length - 1 && <div className="w-0.5 h-full bg-gray-200 mt-1" />}
-                </div>
-                <div className="flex-1 pb-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium">{statusConfig[entry.status]?.label}</span>
-                    <span className="text-gray-400 text-xs">{entry.date}</span>
+            {vehicle.timeline && vehicle.timeline.length > 0 ? (
+              vehicle.timeline.map((entry, i) => (
+                <div key={entry.id || i} className="flex gap-3 text-sm">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-3 h-3 rounded-full ${statusConfig[entry.status]?.bg || "bg-gray-300"}`} />
+                    {i < vehicle.timeline.length - 1 && <div className="w-0.5 h-full bg-gray-200 mt-1" />}
                   </div>
-                  <p className="text-gray-500 text-xs">{entry.note}</p>
-                  <p className="text-gray-400 text-xs">por {entry.user}</p>
+                  <div className="flex-1 pb-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">{statusConfig[entry.status]?.label || entry.status}</span>
+                      <span className="text-gray-400 text-xs">{new Date(entry.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-gray-500 text-xs">{entry.note}</p>
+                    <p className="text-gray-400 text-xs">por {entry.user_name}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">Sin historial</p>
+            )}
           </div>
         </div>
       </div>
