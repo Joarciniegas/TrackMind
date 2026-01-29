@@ -59,9 +59,12 @@ export default function NewVehicle() {
     vin: "",
     year: "",
     make: "",
+    makeOther: "",
     model: "",
+    modelOther: "",
     trim: "",
     color: "",
+    colorOther: "",
     miles: "",
     auction: "Manheim",
     payment_method: "CASH",
@@ -75,7 +78,11 @@ export default function NewVehicle() {
 
     // Si cambia la marca, resetear el modelo
     if (name === "make") {
-      setForm({ ...form, make: value, model: "" });
+      setForm({ ...form, make: value, model: "", makeOther: "", modelOther: "" });
+    } else if (name === "model") {
+      setForm({ ...form, model: value, modelOther: "" });
+    } else if (name === "color") {
+      setForm({ ...form, color: value, colorOther: "" });
     } else {
       setForm({ ...form, [name]: value });
     }
@@ -86,15 +93,27 @@ export default function NewVehicle() {
     setLoading(true);
 
     try {
+      // Usar valores "Otro" si están seleccionados
+      const finalMake = form.make === "Otro" ? form.makeOther : form.make;
+      const finalModel = form.model === "Otro" ? form.modelOther : form.model;
+      const finalColor = form.color === "Otro" ? form.colorOther : form.color;
+
       const response = await fetch("/api/vehicles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          vin: form.vin,
           year: form.year ? parseInt(form.year) : null,
+          make: finalMake,
+          model: finalModel,
+          trim: form.trim,
+          color: finalColor,
           miles: form.miles ? parseInt(form.miles) : null,
+          auction: form.auction,
+          payment_method: form.payment_method,
           purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : 0,
           transport_cost: form.transport_cost ? parseFloat(form.transport_cost) : 0,
+          notes: form.notes,
         }),
       });
 
@@ -177,22 +196,48 @@ export default function NewVehicle() {
           </div>
         </div>
 
+        {/* Campo manual para marca "Otro" */}
+        {form.make === "Otro" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Escribir Marca</label>
+            <input
+              type="text"
+              name="makeOther"
+              value={form.makeOther}
+              onChange={handleChange}
+              placeholder="Ej: Tesla, Rivian..."
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+            />
+          </div>
+        )}
+
         {/* Model, Trim */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
-            <select
-              name="model"
-              value={form.model}
-              onChange={handleChange}
-              disabled={!form.make}
-              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 disabled:bg-gray-100"
-            >
-              <option value="">Seleccionar modelo</option>
-              {availableModels.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            {form.make === "Otro" ? (
+              <input
+                type="text"
+                name="modelOther"
+                value={form.modelOther}
+                onChange={handleChange}
+                placeholder="Escribir modelo..."
+                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+              />
+            ) : (
+              <select
+                name="model"
+                value={form.model}
+                onChange={handleChange}
+                disabled={!form.make}
+                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 disabled:bg-gray-100"
+              >
+                <option value="">Seleccionar modelo</option>
+                {availableModels.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Trim</label>
@@ -206,6 +251,21 @@ export default function NewVehicle() {
             />
           </div>
         </div>
+
+        {/* Campo manual para modelo "Otro" (cuando marca no es "Otro") */}
+        {form.make !== "Otro" && form.model === "Otro" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Escribir Modelo</label>
+            <input
+              type="text"
+              name="modelOther"
+              value={form.modelOther}
+              onChange={handleChange}
+              placeholder="Escribir modelo..."
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+            />
+          </div>
+        )}
 
         {/* Color, Miles */}
         <div className="grid grid-cols-2 gap-3">
@@ -235,6 +295,21 @@ export default function NewVehicle() {
             />
           </div>
         </div>
+
+        {/* Campo manual para color "Otro" */}
+        {form.color === "Otro" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Escribir Color</label>
+            <input
+              type="text"
+              name="colorOther"
+              value={form.colorOther}
+              onChange={handleChange}
+              placeholder="Ej: Turquesa, Champagne..."
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+            />
+          </div>
+        )}
 
         {/* Divider */}
         <div className="border-t border-gray-200 pt-4">
