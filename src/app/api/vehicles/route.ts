@@ -1,19 +1,24 @@
-export async function onRequestGet(context) {
-  const { env } = context;
+import { getRequestContext } from "@cloudflare/next-on-pages";
+
+export const runtime = "edge";
+
+export async function GET() {
+  const { env } = getRequestContext();
 
   try {
     const { results } = await env.DB.prepare(`
       SELECT * FROM vehicles ORDER BY created_at DESC
     `).all();
 
-    return Response.json(results);
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json(results || []);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return Response.json({ error: message }, { status: 500 });
   }
 }
 
-export async function onRequestPost(context) {
-  const { env, request } = context;
+export async function POST(request: Request) {
+  const { env } = getRequestContext();
 
   try {
     const data = await request.json();
@@ -30,9 +35,9 @@ export async function onRequestPost(context) {
       data.trim || null,
       data.color || null,
       data.miles || null,
-      'SUBASTA',
+      "SUBASTA",
       data.auction || null,
-      data.payment_method || 'CASH',
+      data.payment_method || "CASH",
       data.purchase_price || 0,
       data.transport_cost || 0,
       data.notes || null
@@ -44,13 +49,14 @@ export async function onRequestPost(context) {
       VALUES (?, ?, ?, ?)
     `).bind(
       result.meta.last_row_id,
-      'SUBASTA',
-      data.user_name || 'Sistema',
-      'Vehículo creado'
+      "SUBASTA",
+      data.user_name || "Sistema",
+      "Vehículo creado"
     ).run();
 
     return Response.json({ success: true, id: result.meta.last_row_id });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return Response.json({ error: message }, { status: 500 });
   }
 }
