@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TrackMind - Vehicle Tracker",
-  description: "Vehicle tracking system for dealers",
+  title: "South Pro Motors - Vehicle Tracker",
+  description: "Sistema de tracking de vehículos - South Pro Motors",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "TrackMind",
+    title: "South Pro Motors",
   },
 };
 
