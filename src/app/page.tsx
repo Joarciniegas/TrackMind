@@ -70,7 +70,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-blue-600 text-white px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">South Pro Motors</h1>
+          <h1 className="text-xl font-bold">🧠 TrackMind - South Pro Motors</h1>
           <Link
             href="/vehicle/new"
             className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold text-sm"
