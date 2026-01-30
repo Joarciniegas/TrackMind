@@ -34,6 +34,7 @@ const vehicleData: Record<string, string[]> = {
   "Mercedes-Benz": ["C-Class", "E-Class", "GLC", "GLE", "A-Class", "S-Class", "GLA", "GLB"],
   Audi: ["A4", "A6", "Q5", "Q7", "A3", "Q3", "A5", "e-tron"],
   Lexus: ["ES", "RX", "NX", "IS", "GX", "LX", "UX", "LS"],
+  Infiniti: ["Q50", "Q60", "QX50", "QX55", "QX60", "QX80"],
   Mazda: ["CX-5", "Mazda3", "CX-30", "CX-9", "Mazda6", "MX-5 Miata", "CX-50"],
   Subaru: ["Outback", "Forester", "Crosstrek", "Impreza", "Ascent", "Legacy", "WRX"],
   Volkswagen: ["Jetta", "Tiguan", "Atlas", "Passat", "Golf", "ID.4", "Taos"],
