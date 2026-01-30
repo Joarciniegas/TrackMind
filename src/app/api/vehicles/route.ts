@@ -1,4 +1,5 @@
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import { sendPushToAll, createNotification } from "@/lib/push";
 
 export const runtime = "edge";
 
@@ -54,6 +55,24 @@ export async function POST(request: Request) {
       data.user_name || "Sistema",
       "Vehículo creado"
     ).run();
+
+    // Send push notification to all users
+    const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
+    const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
+    const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+
+    if (vapidPublicKey && vapidPrivateKey) {
+      const notification = createNotification.newVehicle({
+        year: data.year,
+        make: data.make,
+        model: data.model,
+        user_name: data.user_name,
+      });
+
+      // Send in background (don't await to not slow down response)
+      sendPushToAll(env.DB, notification, vapidPublicKey, vapidPrivateKey, vapidSubject)
+        .catch((e) => console.error("Push error:", e));
+    }
 
     return Response.json({ success: true, id: result.meta.last_row_id });
   } catch (error: unknown) {

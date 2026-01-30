@@ -61,6 +61,22 @@ export default function ConfigPage() {
     }
   };
 
+  const testServerPush = async () => {
+    try {
+      const res = await fetch("/api/push/test", { method: "POST" });
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`Notificación enviada a ${data.sent} dispositivo(s). Fallaron: ${data.failed}`);
+      } else {
+        alert(data.error || "Error al enviar notificación del servidor");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error de conexión");
+    }
+  };
+
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -152,7 +168,7 @@ export default function ConfigPage() {
             </div>
           </button>
 
-          {/* Botón de prueba de notificaciones */}
+          {/* Botón de prueba de notificaciones locales */}
           {notificationsEnabled && (
             <button
               onClick={testNotification}
@@ -165,8 +181,31 @@ export default function ConfigPage() {
                   </svg>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-900">Probar Notificación</span>
-                  <p className="text-xs text-gray-500">Enviar una notificación de prueba</p>
+                  <span className="font-medium text-gray-900">Probar Local</span>
+                  <p className="text-xs text-gray-500">Notificación local (este dispositivo)</p>
+                </div>
+              </div>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+
+          {/* Botón de prueba de notificaciones del servidor (solo admin) */}
+          {notificationsEnabled && user?.role === "ADMIN" && (
+            <button
+              onClick={testServerPush}
+              className="flex items-center justify-between p-4 border-b border-gray-100 w-full text-left active:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-900">Probar Push Real</span>
+                  <p className="text-xs text-gray-500">Enviar desde servidor a todos</p>
                 </div>
               </div>
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

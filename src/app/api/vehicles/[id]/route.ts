@@ -1,4 +1,5 @@
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import { sendPushToAll, createNotification } from "@/lib/push";
 
 export const runtime = "edge";
 
@@ -38,24 +39,30 @@ export async function PUT(
 
   try {
     const data = await request.json();
+    let statusChanged = false;
+    let vehicleInfo: { year?: number; make?: string; model?: string } = {};
+
+    // Get current vehicle info for notifications
+    const currentVehicle = await env.DB.prepare(`
+      SELECT year, make, model, status FROM vehicles WHERE id = ?
+    `).bind(id).first() as { year: number; make: string; model: string; status: string } | null;
+
+    if (currentVehicle) {
+      vehicleInfo = { year: currentVehicle.year, make: currentVehicle.make, model: currentVehicle.model };
+    }
 
     // If status is being updated, add to timeline
-    if (data.status) {
-      const current = await env.DB.prepare(`
-        SELECT status FROM vehicles WHERE id = ?
-      `).bind(id).first() as { status: string } | null;
-
-      if (current && current.status !== data.status) {
-        await env.DB.prepare(`
-          INSERT INTO timeline (vehicle_id, status, user_name, note)
-          VALUES (?, ?, ?, ?)
-        `).bind(
-          id,
-          data.status,
-          data.user_name || "Sistema",
-          data.note || `Cambio a ${data.status}`
-        ).run();
-      }
+    if (data.status && currentVehicle && currentVehicle.status !== data.status) {
+      statusChanged = true;
+      await env.DB.prepare(`
+        INSERT INTO timeline (vehicle_id, status, user_name, note)
+        VALUES (?, ?, ?, ?)
+      `).bind(
+        id,
+        data.status,
+        data.user_name || "Sistema",
+        data.note || `Cambio a ${data.status}`
+      ).run();
     }
 
     // Build update query dynamically
@@ -88,6 +95,24 @@ export async function PUT(
       `).bind(...values).run();
     }
 
+    // Send push notification for status change
+    if (statusChanged) {
+      const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
+      const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
+      const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+
+      if (vapidPublicKey && vapidPrivateKey) {
+        const notification = createNotification.statusChange({
+          ...vehicleInfo,
+          status: data.status,
+          user_name: data.user_name,
+        });
+
+        sendPushToAll(env.DB, notification, vapidPublicKey, vapidPrivateKey, vapidSubject)
+          .catch((e) => console.error("Push error:", e));
+      }
+    }
+
     return Response.json({ success: true });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -103,11 +128,34 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    // Get vehicle info before deleting for notification
+    const vehicle = await env.DB.prepare(`
+      SELECT year, make, model FROM vehicles WHERE id = ?
+    `).bind(id).first() as { year: number; make: string; model: string } | null;
+
     // Eliminar timeline primero (foreign key)
     await env.DB.prepare("DELETE FROM timeline WHERE vehicle_id = ?").bind(id).run();
 
     // Eliminar vehículo
     await env.DB.prepare("DELETE FROM vehicles WHERE id = ?").bind(id).run();
+
+    // Send push notification
+    if (vehicle) {
+      const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
+      const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
+      const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+
+      if (vapidPublicKey && vapidPrivateKey) {
+        const notification = createNotification.vehicleDeleted({
+          year: vehicle.year,
+          make: vehicle.make,
+          model: vehicle.model,
+        });
+
+        sendPushToAll(env.DB, notification, vapidPublicKey, vapidPrivateKey, vapidSubject)
+          .catch((e) => console.error("Push error:", e));
+      }
+    }
 
     return Response.json({ success: true });
   } catch (error: unknown) {
