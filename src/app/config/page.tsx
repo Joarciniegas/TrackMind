@@ -63,12 +63,20 @@ export default function ConfigPage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
               {user?.picture ? (
-                <img src={user.picture} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold text-2xl">
-                  {user?.name?.charAt(0) || "?"}
-                </div>
-              )}
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-full h-full flex items-center justify-center text-gray-500 font-bold text-2xl ${user?.picture ? 'hidden' : ''}`}>
+                {user?.name?.charAt(0) || "?"}
+              </div>
             </div>
             <div>
               <p className="font-bold text-lg text-gray-900">{user?.name}</p>

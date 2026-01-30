@@ -97,10 +97,18 @@ export default function Home() {
                 className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-white"
               >
                 {user?.picture ? (
-                  <img src={user.picture} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <span className="text-sm font-bold">{user?.name?.charAt(0) || "?"}</span>
-                )}
+                  <img
+                    src={user.picture}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <span className={`text-sm font-bold ${user?.picture ? 'hidden' : ''}`}>{user?.name?.charAt(0) || "?"}</span>
               </button>
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-50">
