@@ -32,22 +32,17 @@ export default function PendingPage() {
       </div>
 
       <div className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm text-center">
-        <div className="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200">
-          {user?.picture ? (
+        <div className="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200 flex items-center justify-center relative">
+          <span className="text-gray-500 font-bold text-2xl">{user?.name?.charAt(0) || "?"}</span>
+          {user?.picture && (
             <img
               src={user.picture}
               alt={user.name}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
-          ) : null}
-          <div className={`w-full h-full flex items-center justify-center text-gray-500 font-bold text-2xl ${user?.picture ? 'hidden' : ''}`}>
-            {user?.name?.charAt(0) || "?"}
-          </div>
+          )}
         </div>
         <p className="font-semibold text-gray-900">{user?.name}</p>
         <p className="text-gray-500 text-sm mb-4">{user?.email}</p>

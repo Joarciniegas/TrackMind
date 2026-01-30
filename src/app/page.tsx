@@ -94,21 +94,18 @@ export default function Home() {
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-white"
+                className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-white flex items-center justify-center relative"
               >
-                {user?.picture ? (
+                <span className="text-sm font-bold text-white">{user?.name?.charAt(0) || "?"}</span>
+                {user?.picture && (
                   <img
                     src={user.picture}
                     alt={user.name}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                     referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                    }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   />
-                ) : null}
-                <span className={`text-sm font-bold ${user?.picture ? 'hidden' : ''}`}>{user?.name?.charAt(0) || "?"}</span>
+                )}
               </button>
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-50">
