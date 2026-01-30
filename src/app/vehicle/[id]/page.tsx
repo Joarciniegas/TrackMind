@@ -57,6 +57,7 @@ export default function VehicleDetail() {
   const [loading, setLoading] = useState(true);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newNote, setNewNote] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/vehicles/${params.id}`)
@@ -124,6 +125,35 @@ export default function VehicleDetail() {
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !vehicle) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("vehicleId", vehicle.id.toString());
+
+      const response = await fetch("/api/photos", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVehicle({ ...vehicle, photo_url: data.url });
+      } else {
+        const error = await response.json();
+        alert(error.error || "Error al subir foto");
+      }
+    } catch {
+      alert("Error de conexión");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
       {/* Header */}
@@ -152,7 +182,7 @@ export default function VehicleDetail() {
       </header>
 
       {/* Photo */}
-      <div className="bg-gray-300 h-48 flex items-center justify-center">
+      <div className="bg-gray-300 h-48 flex items-center justify-center relative">
         {vehicle.photo_url ? (
           <img src={vehicle.photo_url} alt="Vehicle" className="w-full h-full object-cover" />
         ) : (
@@ -163,6 +193,30 @@ export default function VehicleDetail() {
             </svg>
             <p className="mt-2 text-gray-500 text-sm">Sin foto</p>
           </div>
+        )}
+        {/* Upload button */}
+        {permissions.canEdit && (
+          <label className="absolute bottom-3 right-3 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 transition">
+            {uploading ? (
+              <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotoUpload}
+              disabled={uploading}
+              className="hidden"
+            />
+          </label>
         )}
       </div>
 
