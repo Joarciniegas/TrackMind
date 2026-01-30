@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   title: "🧠 TrackMind - South Pro Motors",
   description: "Sistema de tracking de vehículos - South Pro Motors",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    shortcut: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -29,9 +34,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <head>
-        <link rel="apple-touch-icon" href="/icon-192.png" />
-      </head>
       <body className="safe-top safe-bottom">
         <ServiceWorkerProvider>
           <UserProvider>
