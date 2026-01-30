@@ -62,7 +62,19 @@ export async function PUT(
     const fields: string[] = [];
     const values: (string | number | null)[] = [];
 
+    if (data.vin !== undefined) { fields.push("vin = ?"); values.push(data.vin); }
+    if (data.year !== undefined) { fields.push("year = ?"); values.push(data.year); }
+    if (data.make !== undefined) { fields.push("make = ?"); values.push(data.make); }
+    if (data.model !== undefined) { fields.push("model = ?"); values.push(data.model); }
+    if (data.trim !== undefined) { fields.push("trim = ?"); values.push(data.trim); }
+    if (data.color !== undefined) { fields.push("color = ?"); values.push(data.color); }
+    if (data.miles !== undefined) { fields.push("miles = ?"); values.push(data.miles); }
     if (data.status) { fields.push("status = ?"); values.push(data.status); }
+    if (data.auction !== undefined) { fields.push("auction = ?"); values.push(data.auction); }
+    if (data.payment_method !== undefined) { fields.push("payment_method = ?"); values.push(data.payment_method); }
+    if (data.flooring_company !== undefined) { fields.push("flooring_company = ?"); values.push(data.flooring_company); }
+    if (data.purchase_price !== undefined) { fields.push("purchase_price = ?"); values.push(data.purchase_price); }
+    if (data.transport_cost !== undefined) { fields.push("transport_cost = ?"); values.push(data.transport_cost); }
     if (data.recon_cost !== undefined) { fields.push("recon_cost = ?"); values.push(data.recon_cost); }
     if (data.notes !== undefined) { fields.push("notes = ?"); values.push(data.notes); }
     if (data.photo_url !== undefined) { fields.push("photo_url = ?"); values.push(data.photo_url); }

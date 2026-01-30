@@ -5,6 +5,7 @@ export const runtime = "edge";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useUser } from "@/lib/UserContext";
 
 interface TimelineEntry {
   id: number;
@@ -50,6 +51,7 @@ const statusFlow = ["SUBASTA", "TRANSITO", "RECIBIDO", "RECON", "LISTO", "EXHIBI
 export default function VehicleDetail() {
   const params = useParams();
   const router = useRouter();
+  const { user, permissions } = useUser();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -137,6 +139,14 @@ export default function VehicleDetail() {
               <p className="text-blue-200 text-sm">VIN: {vehicle.vin}</p>
             </div>
           </div>
+          {permissions.canEdit && (
+            <Link
+              href={`/vehicle/${vehicle.id}/edit`}
+              className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold text-sm"
+            >
+              Editar
+            </Link>
+          )}
         </div>
       </header>
 
@@ -157,13 +167,19 @@ export default function VehicleDetail() {
 
       {/* Status Button */}
       <div className="px-4 -mt-6 relative z-10">
-        <button
-          onClick={() => setShowStatusModal(true)}
-          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg ${currentStatus.bg} ${currentStatus.color}`}
-        >
-          {currentStatus.label}
-          <span className="ml-2">▼</span>
-        </button>
+        {permissions.canChangeStatus ? (
+          <button
+            onClick={() => setShowStatusModal(true)}
+            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg ${currentStatus.bg} ${currentStatus.color}`}
+          >
+            {currentStatus.label}
+            <span className="ml-2">▼</span>
+          </button>
+        ) : (
+          <div className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg text-center ${currentStatus.bg} ${currentStatus.color}`}>
+            {currentStatus.label}
+          </div>
+        )}
       </div>
 
       {/* Info Cards */}
@@ -226,21 +242,23 @@ export default function VehicleDetail() {
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-3">Notas</h2>
           <p className="text-gray-600 text-sm whitespace-pre-wrap">{vehicle.notes || "Sin notas"}</p>
-          <div className="mt-3 flex gap-2">
-            <input
-              type="text"
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Agregar nota..."
-              className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm"
-            />
-            <button
-              onClick={handleAddNote}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
-            >
-              +
-            </button>
-          </div>
+          {permissions.canAddNotes && (
+            <div className="mt-3 flex gap-2">
+              <input
+                type="text"
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Agregar nota..."
+                className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm"
+              />
+              <button
+                onClick={handleAddNote}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+              >
+                +
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Timeline */}

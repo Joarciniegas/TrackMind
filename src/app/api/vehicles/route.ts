@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     const data = await request.json();
 
     const result = await env.DB.prepare(`
-      INSERT INTO vehicles (vin, stock_no, year, make, model, trim, color, miles, status, auction, payment_method, purchase_price, transport_cost, notes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO vehicles (vin, stock_no, year, make, model, trim, color, miles, status, auction, payment_method, flooring_company, purchase_price, transport_cost, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.vin,
       data.stock_no || null,
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       "SUBASTA",
       data.auction || null,
       data.payment_method || "CASH",
+      data.flooring_company || null,
       data.purchase_price || 0,
       data.transport_cost || 0,
       data.notes || null

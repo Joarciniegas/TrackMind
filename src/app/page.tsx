@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useUser } from "@/lib/UserContext";
 
 interface Vehicle {
   id: number;
@@ -34,10 +35,12 @@ function getDaysAgo(dateString: string): number {
 }
 
 export default function Home() {
+  const { user, loading: userLoading, permissions, logout } = useUser();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     fetch("/api/vehicles")
@@ -64,18 +67,58 @@ export default function Home() {
     return acc;
   }, {} as Record<string, number>);
 
+  // Mostrar loading mientras verifica usuario
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-blue-600 text-white px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">🧠 TrackMind - South Pro Motors</h1>
-          <Link
-            href="/vehicle/new"
-            className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold text-sm"
-          >
-            + Nuevo
-          </Link>
+          <h1 className="text-xl font-bold">🧠 TrackMind</h1>
+          <div className="flex items-center gap-3">
+            {permissions.canCreate && (
+              <Link
+                href="/vehicle/new"
+                className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold text-sm"
+              >
+                + Nuevo
+              </Link>
+            )}
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-white"
+              >
+                {user?.picture ? (
+                  <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-bold">{user?.name?.charAt(0) || "?"}</span>
+                )}
+              </button>
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-50">
+                  <div className="px-4 py-2 border-b">
+                    <p className="font-semibold text-gray-900 text-sm">{user?.name}</p>
+                    <p className="text-xs text-gray-500">{user?.role}</p>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
