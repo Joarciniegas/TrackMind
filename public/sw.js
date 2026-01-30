@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trackmind-v1';
+const CACHE_NAME = 'trackmind-v2';
 const urlsToCache = [
   '/',
   '/login',
@@ -11,6 +11,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(urlsToCache))
+      .catch((err) => console.log('Cache error:', err))
   );
   self.skipWaiting();
 });
@@ -31,13 +32,30 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network first, fallback to cache
+// Network first, fallback to cache - SOLO para mismo origen
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Ignorar peticiones que no sean http/https (extensiones, etc)
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
+  // Ignorar peticiones a otros dominios (Google Photos, APIs externas, etc)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Ignorar peticiones a la API (no cachear datos dinámicos)
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone and cache successful responses
-        if (response.status === 200) {
+        // Solo cachear respuestas exitosas de navegación
+        if (response.status === 200 && event.request.mode === 'navigate') {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
