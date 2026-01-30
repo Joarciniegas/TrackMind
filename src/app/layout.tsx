@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { UserProvider } from "@/lib/UserContext";
+import { ServiceWorkerProvider } from "@/lib/ServiceWorker";
 
 export const metadata: Metadata = {
   title: "🧠 TrackMind - South Pro Motors",
@@ -32,9 +33,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="safe-top safe-bottom">
-        <UserProvider>
-          {children}
-        </UserProvider>
+        <ServiceWorkerProvider>
+          <UserProvider>
+            {children}
+          </UserProvider>
+        </ServiceWorkerProvider>
       </body>
     </html>
   );
