@@ -38,6 +38,15 @@ export const permissions = {
     canViewPrices: true,
     canEditPrices: false,
   },
+  PENDIENTE: {
+    canCreate: false,
+    canEdit: false,
+    canDelete: false,
+    canChangeStatus: false,
+    canAddNotes: false,
+    canViewPrices: false,
+    canEditPrices: false,
+  },
 };
 
 export function getPermissions(role: Role) {
