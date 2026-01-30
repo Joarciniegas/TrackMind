@@ -54,8 +54,7 @@ export default function ConfigPage() {
         body: "¡Las notificaciones funcionan correctamente!",
         icon: "/icon-192.png",
         badge: "/icon-192.png",
-        vibrate: [100, 50, 100],
-      });
+      } as NotificationOptions);
     } catch (error) {
       console.error("Error sending test notification:", error);
       alert("Error al enviar notificación de prueba");
