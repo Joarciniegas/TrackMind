@@ -37,6 +37,7 @@ export default function PendingPage() {
             src={user.picture}
             alt={user.name}
             className="w-20 h-20 rounded-full mx-auto mb-4"
+            referrerPolicy="no-referrer"
           />
         )}
         <p className="font-semibold text-gray-900">{user?.name}</p>
