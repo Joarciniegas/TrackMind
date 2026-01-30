@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generar Iconos TrackMind</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    canvas { border: 1px solid #ccc; margin: 10px; }
+    button { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Generador de Iconos TrackMind</h1>
+  <p>Haz clic en cada botón para descargar los iconos</p>
+
+  <div>
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+  </div>
+
+  <div>
+    <button onclick="download(192)">Descargar icon-192.png</button>
+    <button onclick="download(512)">Descargar icon-512.png</button>
+  </div>
+
+  <script>
+    function drawIcon(size) {
+      const canvas = document.getElementById('canvas' + size);
+      const ctx = canvas.getContext('2d');
+
+      // Fondo azul con bordes redondeados
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, size * 0.125);
+      ctx.fill();
+
+      // Emoji del cerebro
+      ctx.font = `${size * 0.6}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🧠', size / 2, size / 2 + size * 0.05);
+    }
+
+    function download(size) {
+      const canvas = document.getElementById('canvas' + size);
+      const link = document.createElement('a');
+      link.download = `icon-${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Dibujar al cargar
+    drawIcon(192);
+    drawIcon(512);
+  </script>
+</body>
+</html>
