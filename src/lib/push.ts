@@ -61,7 +61,7 @@ async function generateVapidJwt(
   const privateKeyBytes = base64UrlToUint8Array(privateKeyBase64);
   const privateKey = await crypto.subtle.importKey(
     "pkcs8",
-    privateKeyBytes,
+    privateKeyBytes.buffer.slice(privateKeyBytes.byteOffset, privateKeyBytes.byteOffset + privateKeyBytes.byteLength),
     { name: "ECDSA", namedCurve: "P-256" },
     false,
     ["sign"]
@@ -101,7 +101,7 @@ async function generateEncryptionKeys(
   const subscriberPublicKeyBytes = base64UrlToUint8Array(p256dh);
   const subscriberPublicKey = await crypto.subtle.importKey(
     "raw",
-    subscriberPublicKeyBytes,
+    subscriberPublicKeyBytes.buffer.slice(subscriberPublicKeyBytes.byteOffset, subscriberPublicKeyBytes.byteOffset + subscriberPublicKeyBytes.byteLength),
     { name: "ECDH", namedCurve: "P-256" },
     false,
     []
