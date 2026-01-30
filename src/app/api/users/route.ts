@@ -3,7 +3,7 @@ export const runtime = "edge";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 
 // Obtener cookie de sesión y verificar si es admin
-async function getSessionUser(request: Request, db: D1Database) {
+async function getSessionUser(request: Request, db: any) {
   const cookies = request.headers.get("Cookie") || "";
   const sessionMatch = cookies.match(/session=([^;]+)/);
   const sessionId = sessionMatch ? sessionMatch[1] : null;

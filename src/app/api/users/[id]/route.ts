@@ -2,7 +2,7 @@ export const runtime = "edge";
 
 import { getRequestContext } from "@cloudflare/next-on-pages";
 
-async function getSessionUser(request: Request, db: D1Database) {
+async function getSessionUser(request: Request, db: any) {
   const cookies = request.headers.get("Cookie") || "";
   const sessionMatch = cookies.match(/session=([^;]+)/);
   const sessionId = sessionMatch ? sessionMatch[1] : null;
