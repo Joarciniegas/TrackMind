@@ -2,6 +2,7 @@ export const runtime = "edge";
 
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { generateSessionId } from "@/lib/auth";
+import { sendPushToAll, createNotification } from "@/lib/push";
 
 export async function GET(request: Request) {
   const { env } = getRequestContext();
@@ -64,9 +65,12 @@ export async function GET(request: Request) {
     .bind(googleUser.email)
     .first();
 
+  let isNewUser = false;
+
   if (!user) {
     // Usuario nuevo - crear con rol PENDIENTE
     // El admin debe aprobar y asignar rol
+    isNewUser = true;
     await db
       .prepare("INSERT INTO users (email, name, picture, role) VALUES (?, ?, ?, 'PENDIENTE')")
       .bind(googleUser.email, googleUser.name, googleUser.picture)
@@ -76,6 +80,37 @@ export async function GET(request: Request) {
       .prepare("SELECT * FROM users WHERE email = ?")
       .bind(googleUser.email)
       .first();
+
+    // Notify admins about new user
+    const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
+    const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
+    const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+
+    if (vapidPublicKey && vapidPrivateKey) {
+      const notification = createNotification.newUser({ name: googleUser.name });
+
+      // Send only to admins
+      try {
+        const { results: adminSubs } = await db.prepare(`
+          SELECT ps.* FROM push_subscriptions ps
+          JOIN users u ON ps.user_id = u.id
+          WHERE u.role = 'ADMIN'
+        `).all();
+
+        if (adminSubs && adminSubs.length > 0) {
+          const { sendPushNotification } = await import("@/lib/push");
+          for (const sub of adminSubs as any[]) {
+            sendPushNotification(
+              { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+              notification,
+              vapidPublicKey,
+              vapidPrivateKey,
+              vapidSubject
+            ).catch(() => {});
+          }
+        }
+      } catch {}
+    }
   } else {
     // Actualizar último login y foto
     await db

@@ -1,6 +1,7 @@
 export const runtime = "edge";
 
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import { sendPushNotification, createNotification } from "@/lib/push";
 
 async function getSessionUser(request: Request, db: any) {
   const cookies = request.headers.get("Cookie") || "";
@@ -49,9 +50,45 @@ export async function PUT(
       return Response.json({ error: "Rol inválido" }, { status: 400 });
     }
 
+    // Get user info before update
+    const targetUser = await db.prepare(`
+      SELECT name FROM users WHERE id = ?
+    `).bind(id).first() as { name: string } | null;
+
     await db.prepare(`
       UPDATE users SET role = ? WHERE id = ?
     `).bind(data.role, id).run();
+
+    // Notify the user about their role change
+    const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
+    const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
+    const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+
+    if (vapidPublicKey && vapidPrivateKey && targetUser) {
+      const notification = createNotification.roleChanged({
+        name: targetUser.name,
+        role: data.role,
+      });
+
+      // Send to the specific user
+      try {
+        const { results: userSubs } = await db.prepare(`
+          SELECT * FROM push_subscriptions WHERE user_id = ?
+        `).bind(id).all();
+
+        if (userSubs && userSubs.length > 0) {
+          for (const sub of userSubs as any[]) {
+            sendPushNotification(
+              { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+              notification,
+              vapidPublicKey,
+              vapidPrivateKey,
+              vapidSubject
+            ).catch(() => {});
+          }
+        }
+      } catch {}
+    }
 
     return Response.json({ success: true });
   } catch (error: unknown) {
