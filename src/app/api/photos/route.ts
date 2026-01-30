@@ -4,7 +4,7 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export async function POST(request: Request) {
   const { env } = getRequestContext();
-  const bucket = (env as any).PHOTOS as R2Bucket;
+  const bucket = (env as any).PHOTOS;
   const db = env.DB;
 
   if (!bucket) {
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 // GET para servir las fotos
 export async function GET(request: Request) {
   const { env } = getRequestContext();
-  const bucket = (env as any).PHOTOS as R2Bucket;
+  const bucket = (env as any).PHOTOS;
 
   if (!bucket) {
     return new Response("R2 bucket not configured", { status: 500 });

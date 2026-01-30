@@ -72,7 +72,7 @@ export default function LoginPage() {
       </div>
 
       <p className="text-blue-200 text-sm mt-8">
-        © 2024 BizMind AI Agency
+        © {new Date().getFullYear()} BizMind AI Agency
       </p>
     </div>
   );

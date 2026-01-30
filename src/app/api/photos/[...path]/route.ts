@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { env } = getRequestContext();
-  const bucket = (env as any).PHOTOS as R2Bucket;
+  const bucket = (env as any).PHOTOS;
   const { path } = await params;
 
   if (!bucket) {
