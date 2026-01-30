@@ -32,16 +32,11 @@ export default function PendingPage() {
       </div>
 
       <div className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm text-center">
-        <div className="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200 flex items-center justify-center relative">
-          <span className="text-gray-500 font-bold text-2xl">{user?.name?.charAt(0) || "?"}</span>
-          {user?.picture && (
-            <img
-              src={user.picture}
-              alt={user.name}
-              className="absolute inset-0 w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
+        <div className="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden bg-gray-200 flex items-center justify-center">
+          {user?.picture ? (
+            <img src={user.picture} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-gray-500 font-bold text-2xl">{user?.name?.charAt(0) || "?"}</span>
           )}
         </div>
         <p className="font-semibold text-gray-900">{user?.name}</p>
