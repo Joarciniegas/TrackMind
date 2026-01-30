@@ -299,7 +299,7 @@ export async function sendPushNotification(
         TTL: "86400",
         Urgency: "high",
       },
-      body: encrypted,
+      body: toBuffer(encrypted),
     });
 
     if (!response.ok) {
