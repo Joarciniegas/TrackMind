@@ -28,6 +28,7 @@ interface Vehicle {
   status: string;
   auction: string;
   payment_method: string;
+  flooring_company: string | null;
   purchase_price: number;
   transport_cost: number;
   recon_cost: number;
@@ -228,13 +229,18 @@ export default function VehicleDetail() {
               <span className="font-bold text-green-600">${totalInvested.toLocaleString()}</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
             <span className="text-gray-500 text-sm">Pago: </span>
             <span className={`px-2 py-1 rounded text-xs font-semibold ${
               vehicle.payment_method === "CASH" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
             }`}>
               {vehicle.payment_method || "N/A"}
             </span>
+            {vehicle.payment_method === "FLOORING" && vehicle.flooring_company && (
+              <span className="px-2 py-1 rounded text-xs font-semibold bg-orange-100 text-orange-700">
+                {vehicle.flooring_company}
+              </span>
+            )}
           </div>
         </div>
 
