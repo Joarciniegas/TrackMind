@@ -9,12 +9,21 @@ export default function ConfigPage() {
   const { user, loading: userLoading, logout } = useUser();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsAvailable, setNotificationsAvailable] = useState(true);
 
   useEffect(() => {
     // Verificar si las notificaciones están habilitadas
     if ("Notification" in window) {
       setNotificationsEnabled(Notification.permission === "granted");
     }
+
+    // Verificar si VAPID keys están configuradas
+    fetch("/api/push/vapid-public-key")
+      .then((res) => res.json())
+      .then((data) => {
+        setNotificationsAvailable(!!data.publicKey);
+      })
+      .catch(() => setNotificationsAvailable(false));
   }, []);
 
   const toggleNotifications = async () => {
@@ -54,7 +63,7 @@ export default function ConfigPage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
               {user?.picture ? (
-                <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                <img src={user.picture} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold text-2xl">
                   {user?.name?.charAt(0) || "?"}
@@ -99,7 +108,7 @@ export default function ConfigPage() {
           {/* Notificaciones */}
           <button
             onClick={toggleNotifications}
-            disabled={notificationsLoading}
+            disabled={notificationsLoading || !notificationsAvailable}
             className="flex items-center justify-between p-4 border-b border-gray-100 w-full text-left active:bg-gray-50 disabled:opacity-50"
           >
             <div className="flex items-center gap-3">
@@ -111,11 +120,17 @@ export default function ConfigPage() {
               <div>
                 <span className="font-medium text-gray-900">Notificaciones</span>
                 <p className="text-xs text-gray-500">
-                  {notificationsEnabled ? "Activadas" : "Desactivadas"}
+                  {!notificationsAvailable
+                    ? "No configuradas"
+                    : notificationsEnabled
+                    ? "Activadas"
+                    : "Desactivadas"}
                 </p>
               </div>
             </div>
-            <div className={`w-12 h-7 rounded-full p-1 transition-colors ${notificationsEnabled ? "bg-green-500" : "bg-gray-300"}`}>
+            <div className={`w-12 h-7 rounded-full p-1 transition-colors ${
+              !notificationsAvailable ? "bg-gray-200" : notificationsEnabled ? "bg-green-500" : "bg-gray-300"
+            }`}>
               <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationsEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </div>
           </button>

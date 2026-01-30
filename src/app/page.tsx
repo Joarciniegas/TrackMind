@@ -29,9 +29,15 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 };
 
 function getDaysAgo(dateString: string): number {
-  const created = new Date(dateString);
+  // Parsear como UTC y comparar solo fechas (sin hora)
+  const created = new Date(dateString + (dateString.includes('Z') ? '' : 'Z'));
   const now = new Date();
-  const diff = now.getTime() - created.getTime();
+
+  // Normalizar a solo fecha (medianoche UTC)
+  const createdDate = Date.UTC(created.getUTCFullYear(), created.getUTCMonth(), created.getUTCDate());
+  const nowDate = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+  const diff = nowDate - createdDate;
   return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
@@ -91,7 +97,7 @@ export default function Home() {
                 className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-white"
               >
                 {user?.picture ? (
-                  <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                  <img src={user.picture} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <span className="text-sm font-bold">{user?.name?.charAt(0) || "?"}</span>
                 )}

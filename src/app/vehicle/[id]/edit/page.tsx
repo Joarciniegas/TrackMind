@@ -62,6 +62,7 @@ export default function EditVehicle() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     vin: "",
+    stock_no: "",
     year: "",
     make: "",
     makeOther: "",
@@ -107,6 +108,7 @@ export default function EditVehicle() {
 
         setForm({
           vin: data.vin || "",
+          stock_no: data.stock_no || "",
           year: data.year?.toString() || "",
           make: makeInList ? data.make : "Otro",
           makeOther: makeInList ? "" : data.make || "",
@@ -163,6 +165,7 @@ export default function EditVehicle() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vin: form.vin,
+          stock_no: form.stock_no || null,
           year: form.year ? parseInt(form.year) : null,
           make: finalMake,
           model: finalModel,
@@ -216,19 +219,34 @@ export default function EditVehicle() {
       </header>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4 pb-24">
-        {/* VIN */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            VIN (últimos 6 dígitos)
-          </label>
-          <input
-            type="text"
-            name="vin"
-            value={form.vin}
-            onChange={handleChange}
-            maxLength={6}
-            className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 text-lg"
-          />
+        {/* VIN y Stock # */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              VIN (últimos 6)
+            </label>
+            <input
+              type="text"
+              name="vin"
+              value={form.vin}
+              onChange={handleChange}
+              maxLength={6}
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 text-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Stock #
+            </label>
+            <input
+              type="text"
+              name="stock_no"
+              value={form.stock_no}
+              onChange={handleChange}
+              placeholder="SP001"
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 text-lg"
+            />
+          </div>
         </div>
 
         {/* Year, Make */}
