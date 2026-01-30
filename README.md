@@ -8,8 +8,6 @@ Sistema de tracking de vehículos personalizado para **South Pro Motors**.
 
 ```
 SUBASTA → EN TRÁNSITO → RECIBIDO → EN RECON → LISTO → EN EXHIBICIÓN → VENDIDO
-                                      ↓
-                              ESPERANDO PIEZAS
 ```
 
 ## Características

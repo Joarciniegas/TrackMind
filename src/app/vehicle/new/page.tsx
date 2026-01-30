@@ -4,8 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const auctions = ["Manheim", "Copart", "IAAI", "Adesa", "Otro"];
+const auctions = [
+  "Manheim",
+  "Copart",
+  "IAAI",
+  "Adesa",
+  "Americas Almeda",
+  "Americas Conroe",
+  "Americas Buda",
+  "Autonation Houston",
+  "Otro"
+];
 const paymentMethods = ["CASH", "FLOORING"];
+const flooringCompanies = ["Westlake", "Axle", "Carbucks", "FExpress", "Otro"];
 
 // Años desde 2010 hasta 2026
 const years = Array.from({ length: 17 }, (_, i) => (2026 - i).toString());
@@ -67,7 +78,10 @@ export default function NewVehicle() {
     colorOther: "",
     miles: "",
     auction: "Manheim",
+    auctionOther: "",
     payment_method: "CASH",
+    flooring_company: "",
+    flooringOther: "",
     purchase_price: "",
     transport_cost: "",
     notes: "",
@@ -97,6 +111,8 @@ export default function NewVehicle() {
       const finalMake = form.make === "Otro" ? form.makeOther : form.make;
       const finalModel = form.model === "Otro" ? form.modelOther : form.model;
       const finalColor = form.color === "Otro" ? form.colorOther : form.color;
+      const finalAuction = form.auction === "Otro" ? form.auctionOther : form.auction;
+      const finalFlooringCompany = form.flooring_company === "Otro" ? form.flooringOther : form.flooring_company;
 
       const response = await fetch("/api/vehicles", {
         method: "POST",
@@ -109,8 +125,9 @@ export default function NewVehicle() {
           trim: form.trim,
           color: finalColor,
           miles: form.miles ? parseInt(form.miles) : null,
-          auction: form.auction,
+          auction: finalAuction,
           payment_method: form.payment_method,
+          flooring_company: form.payment_method === "FLOORING" ? finalFlooringCompany : null,
           purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : 0,
           transport_cost: form.transport_cost ? parseFloat(form.transport_cost) : 0,
           notes: form.notes,
@@ -330,6 +347,21 @@ export default function NewVehicle() {
           </select>
         </div>
 
+        {/* Campo manual para subasta "Otro" */}
+        {form.auction === "Otro" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Escribir Subasta</label>
+            <input
+              type="text"
+              name="auctionOther"
+              value={form.auctionOther}
+              onChange={handleChange}
+              placeholder="Nombre de la subasta..."
+              className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+            />
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
           <div className="flex gap-3">
@@ -349,6 +381,41 @@ export default function NewVehicle() {
             ))}
           </div>
         </div>
+
+        {/* Flooring Company - Solo visible cuando se selecciona FLOORING */}
+        {form.payment_method === "FLOORING" && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Compañía de Flooring</label>
+              <select
+                name="flooring_company"
+                value={form.flooring_company}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+              >
+                <option value="">Seleccionar compañía</option>
+                {flooringCompanies.map((fc) => (
+                  <option key={fc} value={fc}>{fc}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Campo manual para flooring "Otro" */}
+            {form.flooring_company === "Otro" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Escribir Compañía</label>
+                <input
+                  type="text"
+                  name="flooringOther"
+                  value={form.flooringOther}
+                  onChange={handleChange}
+                  placeholder="Nombre de la compañía..."
+                  className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200"
+                />
+              </div>
+            )}
+          </>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <div>

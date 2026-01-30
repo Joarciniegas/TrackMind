@@ -21,7 +21,6 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
   TRANSITO: { label: "En Tránsito", color: "text-white", bg: "bg-amber-500" },
   RECIBIDO: { label: "Recibido", color: "text-white", bg: "bg-blue-500" },
   RECON: { label: "En Recon", color: "text-white", bg: "bg-purple-500" },
-  PIEZAS: { label: "Esperando Piezas", color: "text-white", bg: "bg-red-500" },
   LISTO: { label: "Listo", color: "text-white", bg: "bg-green-500" },
   EXHIBICION: { label: "En Exhibición", color: "text-white", bg: "bg-cyan-500" },
   VENDIDO: { label: "Vendido", color: "text-white", bg: "bg-emerald-600" },
