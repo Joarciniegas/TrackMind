@@ -1,6 +1,16 @@
 // Web Push implementation for Cloudflare Workers
 // Using Web Crypto API for VAPID signing
 
+// D1Database type for Cloudflare Workers
+interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+}
+
+interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  all(): Promise<{ results: unknown[] }>;
+}
+
 interface PushSubscription {
   endpoint: string;
   p256dh: string;
