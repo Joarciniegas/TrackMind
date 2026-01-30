@@ -94,3 +94,24 @@ export async function PUT(
     return Response.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { env } = getRequestContext();
+  const { id } = await params;
+
+  try {
+    // Eliminar timeline primero (foreign key)
+    await env.DB.prepare("DELETE FROM timeline WHERE vehicle_id = ?").bind(id).run();
+
+    // Eliminar vehículo
+    await env.DB.prepare("DELETE FROM vehicles WHERE id = ?").bind(id).run();
+
+    return Response.json({ success: true });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return Response.json({ error: message }, { status: 500 });
+  }
+}
