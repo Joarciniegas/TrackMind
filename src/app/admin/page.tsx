@@ -16,6 +16,7 @@ interface UserData {
 }
 
 const roleConfig: Record<string, { label: string; bg: string; color: string }> = {
+  PENDIENTE: { label: "Pendiente", bg: "bg-amber-100", color: "text-amber-700" },
   ADMIN: { label: "Admin", bg: "bg-red-100", color: "text-red-700" },
   OPERADOR: { label: "Operador", bg: "bg-blue-100", color: "text-blue-700" },
   VISOR: { label: "Visor", bg: "bg-gray-100", color: "text-gray-700" },
@@ -118,8 +119,8 @@ export default function AdminPage() {
 
       <div className="p-4 space-y-3">
         <p className="text-sm text-gray-600 mb-4">
-          Cuando un usuario nuevo se loguea, entra como <strong>Visor</strong>.
-          Cambia su rol aquí para darle más permisos.
+          Los usuarios nuevos entran como <strong className="text-amber-600">Pendiente</strong> y no pueden acceder hasta que los apruebes.
+          Cambia su rol a Admin, Operador o Visor para darles acceso.
         </p>
 
         {users.map((u) => {
@@ -200,7 +201,9 @@ export default function AdminPage() {
             </p>
 
             <div className="space-y-2 mb-4">
-              {Object.entries(roleConfig).map(([key, config]) => (
+              {Object.entries(roleConfig)
+                .filter(([key]) => key !== "PENDIENTE")
+                .map(([key, config]) => (
                 <button
                   key={key}
                   onClick={() => setSelectedRole(key)}

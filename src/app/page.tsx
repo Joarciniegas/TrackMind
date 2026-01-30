@@ -84,14 +84,6 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">🧠 TrackMind</h1>
           <div className="flex items-center gap-3">
-            {permissions.canCreate && (
-              <Link
-                href="/vehicle/new"
-                className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold text-sm"
-              >
-                + Nuevo
-              </Link>
-            )}
             {/* User Menu */}
             <div className="relative">
               <button

@@ -65,10 +65,10 @@ export async function GET(request: Request) {
     .first();
 
   if (!user) {
-    // Usuario nuevo - crear con rol VISOR por defecto
-    // El admin debe cambiar el rol manualmente
+    // Usuario nuevo - crear con rol PENDIENTE
+    // El admin debe aprobar y asignar rol
     await db
-      .prepare("INSERT INTO users (email, name, picture, role) VALUES (?, ?, ?, 'VISOR')")
+      .prepare("INSERT INTO users (email, name, picture, role) VALUES (?, ?, ?, 'PENDIENTE')")
       .bind(googleUser.email, googleUser.name, googleUser.picture)
       .run();
 

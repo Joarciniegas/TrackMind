@@ -1,5 +1,5 @@
 // Tipos de roles
-export type Role = 'ADMIN' | 'OPERADOR' | 'VISOR';
+export type Role = 'ADMIN' | 'OPERADOR' | 'VISOR' | 'PENDIENTE';
 
 export interface User {
   id: number;

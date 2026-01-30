@@ -37,9 +37,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
+
     // Redirigir a login si no está autenticado (excepto en /login)
-    if (!loading && !user && pathname !== "/login") {
+    if (!user && pathname !== "/login") {
       router.push("/login");
+      return;
+    }
+
+    // Redirigir a pending si el usuario está pendiente de aprobación
+    if (user && user.role === "PENDIENTE" && pathname !== "/pending") {
+      router.push("/pending");
+      return;
+    }
+
+    // Si está aprobado pero en /pending, redirigir a inicio
+    if (user && user.role !== "PENDIENTE" && pathname === "/pending") {
+      router.push("/");
     }
   }, [loading, user, pathname, router]);
 
