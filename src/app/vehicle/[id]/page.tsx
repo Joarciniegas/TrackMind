@@ -94,7 +94,7 @@ export default function VehicleDetail() {
       const response = await fetch(`/api/vehicles/${params.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, user_name: user?.name || "Usuario" }),
       });
 
       if (response.ok) {
