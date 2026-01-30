@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     // Send push notification to all users
     const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
     const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
-    const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+    const vapidSubject = (env as any).VAPID_SUBJECT || ((env as any).VAPID_EMAIL ? `mailto:${(env as any).VAPID_EMAIL}` : "mailto:admin@trackmind.app");
 
     if (vapidPublicKey && vapidPrivateKey) {
       const notification = createNotification.newVehicle({

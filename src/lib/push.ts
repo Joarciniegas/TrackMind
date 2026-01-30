@@ -60,6 +60,11 @@ function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
   return result;
 }
 
+// Convert Uint8Array to ArrayBuffer (fixes TypeScript type issues)
+function toBuffer(arr: Uint8Array): ArrayBuffer {
+  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
+}
+
 // HKDF extract and expand
 async function hkdf(
   salt: Uint8Array,
@@ -67,21 +72,22 @@ async function hkdf(
   info: Uint8Array,
   length: number
 ): Promise<Uint8Array> {
+  const saltBuffer = salt.length ? toBuffer(salt) : new ArrayBuffer(32);
   const key = await crypto.subtle.importKey(
     "raw",
-    salt.length ? salt : new Uint8Array(32),
+    saltBuffer,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
   );
 
   const prk = new Uint8Array(
-    await crypto.subtle.sign("HMAC", key, ikm)
+    await crypto.subtle.sign("HMAC", key, toBuffer(ikm))
   );
 
   const prkKey = await crypto.subtle.importKey(
     "raw",
-    prk,
+    toBuffer(prk),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
@@ -89,7 +95,7 @@ async function hkdf(
 
   const infoWithCounter = concatUint8Arrays(info, new Uint8Array([1]));
   const okm = new Uint8Array(
-    await crypto.subtle.sign("HMAC", prkKey, infoWithCounter)
+    await crypto.subtle.sign("HMAC", prkKey, toBuffer(infoWithCounter))
   );
 
   return okm.slice(0, length);
@@ -150,7 +156,7 @@ async function generateVapidJwt(
 
   const privateKey = await crypto.subtle.importKey(
     "pkcs8",
-    new Uint8Array(privateKeyPkcs8).buffer,
+    toBuffer(privateKeyPkcs8),
     { name: "ECDSA", namedCurve: "P-256" },
     false,
     ["sign"]
@@ -188,7 +194,7 @@ async function encryptPayload(
   const subscriberPublicKeyBytes = base64UrlToUint8Array(p256dh);
   const subscriberPublicKey = await crypto.subtle.importKey(
     "raw",
-    new Uint8Array(subscriberPublicKeyBytes).buffer,
+    toBuffer(subscriberPublicKeyBytes),
     { name: "ECDH", namedCurve: "P-256" },
     false,
     []
@@ -232,7 +238,7 @@ async function encryptPayload(
   // Import CEK for AES-GCM
   const aesKey = await crypto.subtle.importKey(
     "raw",
-    cek,
+    toBuffer(cek),
     { name: "AES-GCM" },
     false,
     ["encrypt"]
@@ -243,9 +249,9 @@ async function encryptPayload(
 
   // Encrypt with AES-GCM
   const encryptedBuffer = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
+    { name: "AES-GCM", iv: toBuffer(nonce) },
     aesKey,
-    paddedPayload
+    toBuffer(paddedPayload)
   );
   const encryptedContent = new Uint8Array(encryptedBuffer);
 

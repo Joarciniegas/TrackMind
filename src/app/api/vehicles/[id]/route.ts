@@ -99,7 +99,7 @@ export async function PUT(
     if (statusChanged) {
       const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
       const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
-      const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+      const vapidSubject = (env as any).VAPID_SUBJECT || ((env as any).VAPID_EMAIL ? `mailto:${(env as any).VAPID_EMAIL}` : "mailto:admin@trackmind.app");
 
       if (vapidPublicKey && vapidPrivateKey) {
         const notification = createNotification.statusChange({
@@ -143,7 +143,7 @@ export async function DELETE(
     if (vehicle) {
       const vapidPublicKey = (env as any).VAPID_PUBLIC_KEY;
       const vapidPrivateKey = (env as any).VAPID_PRIVATE_KEY;
-      const vapidSubject = (env as any).VAPID_SUBJECT || "mailto:admin@trackmind.app";
+      const vapidSubject = (env as any).VAPID_SUBJECT || ((env as any).VAPID_EMAIL ? `mailto:${(env as any).VAPID_EMAIL}` : "mailto:admin@trackmind.app");
 
       if (vapidPublicKey && vapidPrivateKey) {
         const notification = createNotification.vehicleDeleted({
