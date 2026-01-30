@@ -42,6 +42,26 @@ export default function ConfigPage() {
     setNotificationsLoading(false);
   };
 
+  const testNotification = async () => {
+    if (!("serviceWorker" in navigator)) {
+      alert("Service Worker no soportado");
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification("🧠 TrackMind", {
+        body: "¡Las notificaciones funcionan correctamente!",
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+        vibrate: [100, 50, 100],
+      });
+    } catch (error) {
+      console.error("Error sending test notification:", error);
+      alert("Error al enviar notificación de prueba");
+    }
+  };
+
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -132,6 +152,29 @@ export default function ConfigPage() {
               <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationsEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </div>
           </button>
+
+          {/* Botón de prueba de notificaciones */}
+          {notificationsEnabled && (
+            <button
+              onClick={testNotification}
+              className="flex items-center justify-between p-4 border-b border-gray-100 w-full text-left active:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-900">Probar Notificación</span>
+                  <p className="text-xs text-gray-500">Enviar una notificación de prueba</p>
+                </div>
+              </div>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
 
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
