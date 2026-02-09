@@ -13,6 +13,7 @@ const auctions = [
   "Americas Conroe",
   "Americas Buda",
   "Autonation Houston",
+  "First Choice Auto",
   "Otro"
 ];
 const paymentMethods = ["CASH", "FLOORING"];
